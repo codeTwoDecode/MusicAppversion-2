@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicApp-V2</title>
+    <!-- --------font awesome-6.6 CDN link start------- -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+        integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- --------font awesome-6.6 CDN link ends------- -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="main_div">
+        <div class="music_container">
+            <h2 id="title">MUSIC TITLE</h2>
+            <h3 id="artist">Music Artist</h3>
+            <div class="img_container">
+                <img src="./Images/ImagineDragons_Demons.jpg" alt="coverImage">
+            </div>
+            <!-- <audio src="./Music/ImagineDragons_Demons.mp3" controls></audio> -->
+
+            <!-- ------audio with progress bar------ -->
+            <div class="progress_container">
+                <div class="progress_duration_bar">
+                    <div id="song_current_time">0.00</div>
+                    <div id="song_duration">9.99</div>
+                </div>
+                <div id="progress_div">
+                    <div id="progress_sub_div"></div>
+                </div>
+            </div>
+
+
+            <!-- ------audio with custom controls------ -->
+            <audio src="./Music/ImagineDragons_Demons.mp3"></audio>
+
+            <div class="music_controls">
+                <i class="fa-solid fa-backward" id="prev" title="Previous"></i>
+                <i class="fa-solid fa-play main_button" id="playBtn" title="Play"></i>
+                <!-- <i class="fa-solid fa-pause" id="pause" title="Pause"></i> -->
+                <i class="fa-solid fa-forward" id="next" title="Next"></i>
+            </div>
+
+        </div>
+    </div>
+
+
+    <script>
+        const music = document.querySelector("audio");
+        const image = document.querySelector("img");
+        const playBtn = document.getElementById("playBtn");
+        const title = document.getElementById("title");
+        const artist = document.getElementById("artist");
+        const prev = document.getElementById("prev");
+        const next = document.getElementById("next");
+        const song_current_time = document.getElementById("song_current_time");
+        const song_duration = document.getElementById("song_duration");
+        const progress_div = document.getElementById("progress_div");
+        let progress_sub_div = document.getElementById("progress_sub_div");
+
+        let isPlaying = false;
+
+        const songsAPI = [
+            { name: "ImagineDragons_Demons", title: "Demons", artist: "Imagine Dragons" },
+            { name: "TheScript_HallOfFame", title: "Hall of Fame", artist: "The Script" },
+            { name: "ElgitDoda_Larg", title: "Larg", artist: "Elgit Doda" },
+            { name: "Random_sampleMusic", title: "SampleMusic", artist: "Random" },
+        ]
+
+        // --------for play functionality---------
+        const playMusic = () => {
+            isPlaying = true;
+            music.play();
+            // Note- play() 	Starts playing the audio / video
+            playBtn.classList.replace('fa-play', 'fa-pause');
+            image.classList.add("anime");
+        }
+
+        // --------for pause functionality---------
+        const pauseMusic = () => {
+            isPlaying = false;
+            music.pause();
+            // Note- pause()	Pauses the currently playing audio / video
+            playBtn.classList.replace('fa-pause', 'fa-play');
+            image.classList.remove("anime");
+        }
+
+        // -----event on playButton--------
+        playBtn.addEventListener("click", () => {
+            isPlaying ? pauseMusic() : playMusic();
+        })
+
+
+
+        // >>>>>>>>>changing music data>>>>>>>>>>>
+        const loadSongs = (song) => {
+            title.textContent = song.title;
+            artist.textContent = song.artist;
+            music.src = `./Music/${song.name}.mp3`;
+            image.src = `./Images/${song.name}.jpg`;
+        };
+
+        loadSongs(songsAPI[0]);                 // loading initial song data 
+
+
+
+        // ------next & prev button functionality--------
+        let songIndex = 0;
+
+        const nextSong = () => {
+            // songIndex++;                     // useful but old trick
+            songIndex = (songIndex + 1) % songsAPI.length
+            // console.log("🚀 ~ nextSong ~ songsAPI.length: ->>", songsAPI.length);
+            // console.log("🚀 ~ nextSong ~ songIndex: ->>", songIndex);
+            loadSongs(songsAPI[songIndex]);
+            playMusic();
+        };
+
+        const prevSong = () => {
+            // songIndex--;                     // useful but old trick
+            songIndex = (songIndex - 1 + songsAPI.length) % songsAPI.length
+            // console.log("🚀 ~ prevSong ~ songIndex: ->>", songIndex);
+            loadSongs(songsAPI[songIndex]);
+            playMusic();
+        };
+
+
+        next.addEventListener("click", nextSong);
+        prev.addEventListener("click", prevSong);
+
+
+
+        // --------progressBar section--------
+        music.addEventListener("timeupdate", (eve) => {
+            // console.log("🚀 ~ music.addEventListener ~ eve: ->>", eve);
+            let { currentTime, duration } = eve.srcElement;
+
+            // -------song playing progress div----
+            progress_sub_div.style.width = `${(currentTime / duration) * 100}%`
+
+
+            // ---------total duration portion--------
+            if (duration < 3600) {
+                let minDuration = Math.floor(duration / 60);
+                let secDuration = Math.round(duration % 60);
+
+                song_duration.innerText = `${minDuration}:${secDuration}`;
+            } else if (duration >= 3600) {
+                let hrDuration = Math.floor(duration / 3600);
+                let minDuration = Math.floor((duration % 3600) / 60);
+                minDuration = minDuration < 10 ? `0${minDuration}` : minDuration;
+                let secDuration = Math.round(duration % 60);
+                secDuration = secDuration < 10 ? `0${secDuration}` : secDuration;
+
+                song_duration.innerText = `${hrDuration}:${minDuration}:${secDuration}`;
+            }
+
+            // ---------current play timing portion--------
+            if (currentTime < 3600) {
+                let minCurrentTime = Math.floor(currentTime / 60);
+                let secCurrentTime = Math.round(currentTime % 60);
+                secCurrentTime = secCurrentTime < 10 ? `0${secCurrentTime}` : secCurrentTime;
+
+                song_current_time.innerText = `${minCurrentTime}:${secCurrentTime}`;
+            } else if (currentTime >= 3600) {
+                let hrCurrentTime = Math.floor(currentTime / 3600);
+                let minCurrentTime = Math.floor((currentTime % 3600) / 60);
+                minCurrentTime = minCurrentTime < 10 ? `0${minCurrentTime}` : minCurrentTime;
+                let secCurrentTime = Math.round(currentTime % 60);
+                secCurrentTime = secCurrentTime < 10 ? `0${secCurrentTime}` : secCurrentTime;
+
+                song_current_time.innerText = `${hrCurrentTime}:${minCurrentTime}:${secCurrentTime}`;
+            }
+
+        })
+
+
+
+        // --------progress_div click functionality---------
+        progress_div.addEventListener("click", (event) => {
+            // console.log("🚀 ~ progress_div.addEventListener ~ event: ->>", event);
+
+            const clientWidth = event.srcElement.clientWidth;
+            const offsetX = event.offsetX;
+            const progressDivClickRatio = offsetX / clientWidth;
+
+            // console.dir(music);
+            const ProgressSongClickTime = music.duration * progressDivClickRatio
+            // console.log("🚀 ~ progress_div.addEventListener ~ ProgressSongClickTime: ->>", ProgressSongClickTime);
+
+            // ----for updating song time to clicked time-----
+            music.currentTime = ProgressSongClickTime;
+
+        })
+
+
+
+        // --------as music ends we call next song----------
+        music.addEventListener("ended", nextSong);
+
+    </script>
+
+
+</body>
+
+</html>
